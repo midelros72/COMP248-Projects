@@ -1,0 +1,52 @@
+@startuml Health_Research_System_Sequence_Simplified
+
+participant USER
+participant UI
+participant Controller
+participant Orchestrator
+participant "Search Agent" as Search
+participant "Chroma DB" as DB
+participant "SummAgent" as Summ
+participant "Reflect Agent" as Reflect
+
+== Query Processing ==
+
+USER -> UI: Submit Query
+UI -> Controller: Query
+Controller -> Orchestrator: Retrieve Info
+Orchestrator -> Search: Vector Search
+Search -> DB: Chunks
+DB --> Search: 
+Search --> Orchestrator: Results
+Orchestrator -> Summ: Summarize
+Summ --> Orchestrator: Summary
+Orchestrator -> Reflect: Evaluate
+Reflect --> Orchestrator: Feedback
+Orchestrator --> Controller: 
+Controller --> UI: Deliver Final Output
+UI --> USER: Results
+
+== User Feedback Loop ==
+
+USER -> UI: Provide Feedback
+note right of USER: Rating + Comments
+UI -> Controller: Feedback
+Controller -> Orchestrator: Process Feedback
+Orchestrator -> Reflect: Incorporate
+Reflect -> Reflect: Evaluate
+Reflect --> Orchestrator: Revision Needed?
+
+alt Revision Required
+    Orchestrator -> Summ: Improve Summary
+    Summ --> Orchestrator: Final Summary
+    Orchestrator -> DB: Store Feedback
+    Orchestrator --> Controller: Updated Output
+else No Revision
+    Orchestrator -> DB: Store Feedback
+    Orchestrator --> Controller: Acknowledgment
+end
+
+Controller --> UI: Display Result
+UI --> USER: Updated Results
+
+@enduml

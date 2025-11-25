@@ -1,0 +1,174 @@
+@startuml Health_Research_System_Class_Simplified
+
+' Core Agent Classes
+abstract class BaseAgent {
+    - agent_id: str
+    - name: str
+    - role: str
+    - llm_model: str
+    - verbose: bool
+    + execute(input: Any): Any
+    + validate_input(input: Any): bool
+    + log_activity(message: str): void
+}
+
+class OrchestratorAgent {
+    - workflow: Dict[str, Any]
+    - agent_pool: List[BaseAgent]
+    - current_state: WorkflowState
+    + decompose_task(query: Query): List[Task]
+    + route_to_agent(task: Task): BaseAgent
+    + aggregate_results(results: List): QueryResponse
+    + handle_feedback(feedback: UserFeedback): QueryResponse
+}
+
+class SearchAgent {
+    - rag_tool: RAGTool
+    - top_k: int
+    - search_strategy: str
+    + retrieve_documents(query: str): List[Document]
+    + query_vector_db(query: str, k: int): List[Document]
+    + rank_results(docs: List): List[Document]
+}
+
+class SummarizationAgent {
+    - max_length: int
+    - style: str
+    - temperature: float
+    + summarize(documents: List[Document]): Summary
+    + format_output(summary: str): str
+    + re_summarize(docs: List, suggestions: List[str]): Summary
+}
+
+class ReflectiveAgent {
+    - metrics: Dict[str, float]
+    - feedback_history: List[UserFeedback]
+    - quality_thresholds: Dict[str, float]
+    + evaluate_summary(summary: Summary): ReflectionReport
+    + incorporate_feedback(feedback: UserFeedback): void
+    + calculate_scores(summary: Summary): Dict[str, float]
+    + suggest_improvements(report: ReflectionReport): List[str]
+    + determine_revision_need(feedback: UserFeedback): bool
+}
+
+' Controller Layer
+class SystemController {
+    - orchestrator: OrchestratorAgent
+    + handle_query(query: str): QueryResponse
+    + handle_feedback(feedback: UserFeedback): QueryResponse
+    + initialize_system(): void
+}
+
+' Data Models
+class Query {
+    - query_id: str
+    - text: str
+    - timestamp: datetime
+    - user_context: Dict[str, Any]
+    - session_id: str
+    + to_dict(): Dict
+    + from_dict(data: Dict): Query
+}
+
+class Summary {
+    - summary_id: str
+    - content: str
+    - source_docs: List[str]
+    - confidence: float
+    - version: int
+    - created_at: datetime
+    + to_dict(): Dict
+    + update_version(): void
+}
+
+class UserFeedback {
+    - feedback_id: str
+    - summary_id: str
+    - rating: int
+    - comments: str
+    - timestamp: datetime
+    - improvement_requested: bool
+    - specific_concerns: List[str]
+    + validate_rating(): bool
+    + to_dict(): Dict
+}
+
+class ReflectionReport {
+    - report_id: str
+    - summary_id: str
+    - coherence_score: float
+    - completeness_score: float
+    - factuality_confidence: float
+    - suggestions: List[str]
+    - requires_revision: bool
+    - evaluated_at: datetime
+    + calculate_overall_score(): float
+    + to_dict(): Dict
+}
+
+class QueryResponse {
+    - response_id: str
+    - query: Query
+    - summary: Summary
+    - reflection: ReflectionReport
+    - status: str
+    - execution_time: float
+    + to_dict(): Dict
+    + is_successful(): bool
+}
+
+' Knowledge Base
+class RAGTool {
+    - collection: ChromaCollection
+    - embedding_model: str
+    - chunk_size: int
+    - chunk_overlap: int
+    + search(query: str, k: int): List[Document]
+    + get_collection(): ChromaCollection
+    + embed_query(query: str): List[float]
+}
+
+class ChromaDBClient {
+    - path: str
+    - collections: Dict[str, ChromaCollection]
+    - client: PersistentClient
+    + get_collection(name: str): ChromaCollection
+    + create_collection(name: str): ChromaCollection
+    + query(text: str, k: int): QueryResult
+    + store_feedback(feedback: UserFeedback): void
+}
+
+' Relationships - Inheritance
+BaseAgent <|-- OrchestratorAgent
+BaseAgent <|-- SearchAgent
+BaseAgent <|-- SummarizationAgent
+BaseAgent <|-- ReflectiveAgent
+
+' Relationships - Composition/Aggregation
+SystemController *-- OrchestratorAgent
+
+OrchestratorAgent o-- SearchAgent
+OrchestratorAgent o-- SummarizationAgent
+OrchestratorAgent o-- ReflectiveAgent
+
+SearchAgent *-- RAGTool
+RAGTool *-- ChromaDBClient
+
+' Relationships - Association
+SystemController ..> Query : creates
+SystemController ..> QueryResponse : returns
+OrchestratorAgent ..> QueryResponse : creates
+SummarizationAgent ..> Summary : produces
+ReflectiveAgent ..> ReflectionReport : generates
+ReflectiveAgent o-- UserFeedback : processes
+
+QueryResponse *-- Query
+QueryResponse *-- Summary
+QueryResponse *-- ReflectionReport
+
+ReflectionReport --> Summary : evaluates
+UserFeedback --> Summary : rates
+
+ChromaDBClient ..> UserFeedback : persists
+
+@enduml

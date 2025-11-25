@@ -1,29 +1,215 @@
-from crewai import Agent
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from base_agent import BaseAgent
+from typing import Any, Dict, List
+from llm_config import get_llm_config
+
+try:
+    from crewai import Agent
+    CREW_AVAILABLE = True
+except ImportError:
+    CREW_AVAILABLE = False
+
+try:
+    from models import UserFeedback, ReflectionReport
+    MODELS_AVAILABLE = True
+except ImportError:
+    MODELS_AVAILABLE = False
+
+
+class ReflectiveAgent(BaseAgent):
+    """Agent responsible for evaluating summary quality and processing feedback."""
+    
+    def __init__(self):
+        super().__init__(
+            agent_id="reflective_001",
+            name="Reflective Agent",
+            role="Quality Reviewer",
+            llm_model="gpt-4o-mini",
+            verbose=True
+        )
+        self.metrics = {
+            "coherence": 0.0,
+            "completeness": 0.0,
+            "factuality": 0.0
+        }
+        self.feedback_history = []
+        self.quality_thresholds = {
+            "coherence": 3.0,
+            "completeness": 3.0,
+            "factuality": 3.0
+        }
+    
+    def process(self, input_data: Any) -> str:
+        """
+        Process a summary and evaluate its quality.
+        
+        Args:
+            input_data: Summary text to evaluate
+            
+        Returns:
+            Reflection report as string
+        """
+        if not isinstance(input_data, str):
+            raise ValueError("ReflectiveAgent expects string input")
+        
+        summary_text = input_data
+        self.log_activity(f"Evaluating summary ({len(summary_text)} chars)")
+        
+        report = self.evaluate_summary(summary_text)
+        return report
+    
+    def evaluate_summary(self, summary_text: str) -> str:
+        """
+        Evaluate the quality of a summary.
+        
+        Args:
+            summary_text: Summary to evaluate
+            
+        Returns:
+            Formatted reflection report
+        """
+        if not summary_text or summary_text.strip() == "":
+            return "Reflection: No summary provided to evaluate."
+        
+        # Calculate scores
+        scores = self.calculate_scores(summary_text)
+        self.metrics.update(scores)
+        
+        # Generate report
+        report = (
+            "Quality Evaluation Report\n"
+            "=" * 50 + "\n\n"
+            f"Coherence Score: {scores['coherence']:.1f}/5.0\n"
+            f"Completeness Score: {scores['completeness']:.1f}/5.0\n"
+            f"Factuality Confidence: {scores['factuality']:.1f}/5.0\n\n"
+            f"Overall Score: {sum(scores.values())/len(scores):.1f}/5.0\n\n"
+        )
+        
+        # Add suggestions
+        suggestions = self.suggest_improvements(scores)
+        if suggestions:
+            report += "Recommendations for Improvement:\n"
+            for i, suggestion in enumerate(suggestions, 1):
+                report += f"{i}. {suggestion}\n"
+        
+        report += "\nNote: Always verify critical medical information with primary sources.\n"
+        
+        self.log_activity(f"Evaluation complete. Overall score: {sum(scores.values())/len(scores):.1f}/5.0")
+        return report
+    
+    def calculate_scores(self, summary_text: str) -> Dict[str, float]:
+        """
+        Calculate quality scores for a summary.
+        
+        Args:
+            summary_text: Summary to score
+            
+        Returns:
+            Dictionary of scores
+        """
+        # Simple heuristic-based scoring
+        length = len(summary_text)
+        
+        # Completeness based on length
+        completeness = min(5.0, (length / 300) * 4.0) if length > 0 else 0.0
+        
+        # Coherence based on presence of structure
+        has_sections = any(marker in summary_text for marker in ['Summary', 'Key', 'Important'])
+        coherence = 4.0 if has_sections else 3.0
+        
+        # Factuality - assume moderate confidence
+        factuality = 3.5
+        
+        return {
+            "coherence": coherence,
+            "completeness": completeness,
+            "factuality": factuality
+        }
+    
+    def suggest_improvements(self, scores: Dict[str, float]) -> List[str]:
+        """
+        Generate improvement suggestions based on scores.
+        
+        Args:
+            scores: Quality scores
+            
+        Returns:
+            List of suggestions
+        """
+        suggestions = []
+        
+        if scores['completeness'] < 3.0:
+            suggestions.append("Expand the summary to include more details")
+        
+        if scores['coherence'] < 3.0:
+            suggestions.append("Improve logical flow and organization")
+        
+        if scores['factuality'] < 3.0:
+            suggestions.append("Verify facts against primary sources")
+        
+        return suggestions
+    
+    def incorporate_feedback(self, feedback: Any) -> None:
+        """
+        Process user feedback and store it.
+        
+        Args:
+            feedback: UserFeedback object or dict
+        """
+        self.log_activity(f"Processing user feedback")
+        
+        if hasattr(feedback, 'rating'):
+            self.feedback_history.append(feedback)
+            self.log_activity(f"Feedback stored. Rating: {feedback.rating}/5")
+        else:
+            self.log_activity("Invalid feedback format")
+    
+    def determine_revision_need(self, feedback: Any) -> bool:
+        """
+        Determine if summary needs revision based on feedback.
+        
+        Args:
+            feedback: UserFeedback object
+            
+        Returns:
+            True if revision recommended, False otherwise
+        """
+        if hasattr(feedback, 'rating'):
+            # Revision needed if rating is low or explicitly requested
+            needs_revision = feedback.rating < 3 or feedback.improvement_requested
+            self.log_activity(f"Revision needed: {needs_revision}")
+            return needs_revision
+        
+        return False
+
+
+# Legacy fallback function for compatibility
 def reflect_logic(summary_text: str) -> str:
     """Simple reflection that scores the summary on a few axes."""
-    if not summary_text or summary_text.strip() == "":
-        return "Reflection: No summary provided to evaluate."
+    agent = ReflectiveAgent()
+    return agent.process(summary_text)
 
-    length_score = 4 if len(summary_text) > 300 else 2
-    completeness = "likely incomplete" if length_score < 3 else "probably reasonably complete"
 
-    report = (
-        "Reflection Report (fallback mode):\n"
-        f"- Approx length-based completeness: {completeness}.\n"
-        "- Coherence: assumed moderate (manual check still needed).\n"
-        "- Factuality: depends on source quality (RAG inputs).\n"
-        "Recommendation: Double-check critical medical claims with primary sources."
-    )
-    return report
+# CrewAI agent for compatibility - created lazily to avoid import errors
+reflective_agent = None
 
-reflective_agent = Agent(
-    name="Reflective Agent",
-    role="Quality Reviewer",
-    goal="Evaluate summaries for completeness, clarity, and potential issues.",
-    backstory=(
-        "You review health summaries to flag potential gaps, ambiguity, or risky claims, "
-        "and suggest improvements."
-    ),
-    verbose=True,
-)
+def get_reflective_agent():
+    """Get or create the reflective agent."""
+    global reflective_agent
+    if CREW_AVAILABLE and reflective_agent is None:
+        llm = get_llm_config()
+        reflective_agent = Agent(
+            name="Reflective Agent",
+            role="Quality Reviewer",
+            goal="Evaluate summaries for completeness, clarity, and potential issues.",
+            backstory=(
+                "You review health summaries to flag potential gaps, ambiguity, or risky claims, "
+                "and suggest improvements."
+            ),
+            llm=llm,
+            verbose=True,
+        )
+    return reflective_agent

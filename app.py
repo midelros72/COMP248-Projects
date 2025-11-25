@@ -12,10 +12,10 @@ try:
 except Exception:
     CREW_AVAILABLE = False
 
-from agents.planner_agent import planner_agent, planner_logic
-from agents.search_agent import search_agent, search_logic
-from agents.summarize_agent import summarize_agent, summarize_logic
-from agents.reflective_agent import reflective_agent, reflect_logic
+from agents.planner_agent import get_planner_agent, planner_logic
+from agents.search_agent import get_search_agent, search_logic
+from agents.summarize_agent import get_summarize_agent, summarize_logic
+from agents.reflective_agent import get_reflective_agent, reflect_logic
 
 
 def run_system(user_query: str) -> str:
@@ -24,6 +24,12 @@ def run_system(user_query: str) -> str:
 
     if CREW_AVAILABLE:
         try:
+            # Get agents lazily
+            planner_agent = get_planner_agent()
+            search_agent = get_search_agent()
+            summarize_agent = get_summarize_agent()
+            reflective_agent = get_reflective_agent()
+            
             plan_task = Task(
                 description=f"Plan research steps for the health query: '{user_query}'",
                 expected_output="A clear list of research subtasks.",
@@ -60,6 +66,22 @@ def run_system(user_query: str) -> str:
                 verbose=True,
             )
             result: Any = crew.kickoff()
+            
+            # Extract the summary task output (3rd task, index 2)
+            # CrewAI returns the last task by default, but we want the summary
+            summary_output = None
+            if hasattr(result, 'tasks_output') and len(result.tasks_output) >= 3:
+                summary_output = result.tasks_output[2]  # summarize_task is 3rd
+            
+            if summary_output:
+                if hasattr(summary_output, 'raw'):
+                    return str(summary_output.raw)
+                elif hasattr(summary_output, 'output'):
+                    return str(summary_output.output)
+                else:
+                    return str(summary_output)
+            
+            # Fallback to full result if we can't extract summary
             return str(result)
         except Exception as e:
             fallback_header = (
