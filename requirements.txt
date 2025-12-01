@@ -1,8 +1,10 @@
 crewai
-chromadb
+faiss-cpu
+numpy
 streamlit
 python-dotenv
 langchain
 langchain-community
 langgraph
 openai
+sentence-transformers

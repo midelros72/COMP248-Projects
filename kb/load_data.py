@@ -1,24 +1,22 @@
-"""Simple script to preload a few health-related dummy documents into Chromadb.
+"""Simple script to preload a few health-related dummy documents into FAISS.
 
 Run:
     python kb/load_data.py
 """
 import os
-import chromadb
-from chromadb.utils import embedding_functions
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.documents import Document
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-CHROMA_DIR = os.path.join(BASE_DIR, "kb", "chroma_store")
+FAISS_PATH = os.path.join(BASE_DIR, "kb", "faiss_store")
 
 def main():
-    client = chromadb.PersistentClient(path=CHROMA_DIR)
-    collection = client.get_or_create_collection("health_docs")
-
-    if collection.count() > 0:
-        print("Collection already has data, skipping insert.")
-        return
-
-    docs = [
+    print("Initializing FAISS with HuggingFace embeddings...")
+    # Using all-MiniLM-L6-v2 which is equivalent to Chroma's default
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    
+    docs_data = [
         {
             "id": "doc1",
             "text": "Influenza (flu) is a contagious respiratory illness caused by influenza viruses. "
@@ -37,18 +35,13 @@ def main():
         },
     ]
 
-    ef = embedding_functions.DefaultEmbeddingFunction()
+    documents = [Document(page_content=d["text"], metadata={"id": d["id"]}) for d in docs_data]
 
-    for d in docs:
-        emb = ef([d["text"]])
-        collection.add(
-            ids=[d["id"]],
-            documents=[d["text"]],
-            embeddings=emb,
-        )
-        print(f"Inserted {d['id']} into health_docs collection.")
-
-    print("Done populating Chromadb health_docs collection.")
+    # Create and save the FAISS index
+    vectorstore = FAISS.from_documents(documents, embeddings)
+    vectorstore.save_local(FAISS_PATH)
+    
+    print(f"Done populating FAISS index at {FAISS_PATH}")
 
 if __name__ == "__main__":
     main()
