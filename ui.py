@@ -93,6 +93,18 @@ st.markdown("""
         border: 1px solid #f5c6cb;
         margin-bottom: 1rem;
     }
+    
+    /* Success Message Styling */
+    .success-message {
+        color: #27ae60;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -166,7 +178,7 @@ if search_button:
             st.session_state.last_response = response
             
             if response.is_successful():
-                status.update(label="✅ Research Complete!", state="complete", expanded=False)
+                status.update(label="Processing Complete", state="complete", expanded=False)
             else:
                 status.update(label="❌ Process Failed", state="error", expanded=True)
 
@@ -178,6 +190,9 @@ if st.session_state.last_response:
     response = st.session_state.last_response
     
     if response.is_successful():
+        # Custom Success Message
+        st.markdown('<div class="success-message">✅ Research Complete!</div>', unsafe_allow_html=True)
+        
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<div class="result-header">📋 Research Report</div>', unsafe_allow_html=True)
         

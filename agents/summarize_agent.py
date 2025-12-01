@@ -65,7 +65,7 @@ class SummarizationAgent(BaseAgent):
         
         summary = (
             "Health Research Summary\n"
-            "=" * 50 + "\n\n"
+            "==================================================\n\n"
             "This summary presents health-related information gathered from trusted medical sources.\n\n"
             "Key Information:\n"
             f"{snippet}\n\n"

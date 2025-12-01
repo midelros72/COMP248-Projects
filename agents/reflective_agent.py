@@ -81,7 +81,7 @@ class ReflectiveAgent(BaseAgent):
         # Generate report
         report = (
             "Quality Evaluation Report\n"
-            "=" * 50 + "\n\n"
+            "==================================================\n\n"
             f"Coherence Score: {scores['coherence']:.1f}/5.0\n"
             f"Completeness Score: {scores['completeness']:.1f}/5.0\n"
             f"Factuality Confidence: {scores['factuality']:.1f}/5.0\n\n"
