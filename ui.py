@@ -81,8 +81,21 @@ st.markdown("""
         background-color: #2c3e50;
         color: white;
     }
-    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] span, 
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] label {
         color: #ecf0f1 !important;
+    }
+    
+    /* Fix for st.info in sidebar */
+    [data-testid="stSidebar"] .stAlert {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #ecf0f1;
     }
     
     /* Button Styling */
