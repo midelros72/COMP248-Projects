@@ -17,7 +17,7 @@ except ImportError:
 class SearchAgent(BaseAgent):
     """Agent responsible for retrieving documents from RAG knowledge base."""
     
-    def __init__(self, top_k: int = 4):
+    def __init__(self, top_k: int = 5):
         super().__init__(
             agent_id="search_001",
             name="Search Agent",
@@ -41,7 +41,10 @@ class SearchAgent(BaseAgent):
         if not isinstance(input_data, str):
             raise ValueError("SearchAgent expects string input")
         
-        query = input_data
+        query = input_data.strip()
+        if len(query) < 3:
+             return "Query too short. Please provide more specific health-related keywords."
+
         self.log_activity(f"Searching for: {query}")
         
         docs = self.retrieve_documents(query)
@@ -103,10 +106,11 @@ def get_search_agent():
         search_agent = Agent(
             name="Search Agent",
             role="Health Document Retriever",
-            goal="Retrieve relevant health information from the RAG knowledge base.",
+            goal="Retrieve relevant health information from the RAG knowledge base to answer complex user queries.",
             backstory=(
                 "You specialise in finding reliable medical information from curated sources "
-                "stored in a vector database."
+                "stored in a vector database. You are capable of handling queries about various "
+                "health topics including diseases, prevention, mental health, and lifestyle choices."
             ),
             llm=llm,
             verbose=True,

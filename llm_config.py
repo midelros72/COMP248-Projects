@@ -5,6 +5,27 @@ from dotenv import load_dotenv
 # Force reload environment variables
 load_dotenv(override=True)
 
+class OllamaWrapper:
+    """Simple wrapper for Ollama when CrewAI is not available."""
+    def __init__(self, model, base_url=None):
+        self.model = model
+        self.base_url = base_url
+        try:
+            import ollama
+            self.client = ollama.Client(host=base_url) if base_url else ollama
+        except ImportError:
+            self.client = None
+            print("⚠️  'ollama' package not found. Please install it with `pip install ollama`.")
+
+    def predict(self, prompt):
+        if not self.client:
+            return "Error: Ollama client not available."
+        try:
+            response = self.client.chat(model=self.model, messages=[{'role': 'user', 'content': prompt}])
+            return response['message']['content']
+        except Exception as e:
+            return f"Error calling Ollama: {str(e)}"
+
 def get_llm_config():
     """
     Get LLM configuration based on available API keys.
@@ -13,6 +34,32 @@ def get_llm_config():
     Returns:
         CrewAI LLM object or default model string
     """
+    # Check for Ollama (Local LLM) - Prioritize this if configured
+    ollama_model = os.getenv('OLLAMA_MODEL', 'llama3.2')
+    use_ollama = os.getenv('USE_OLLAMA', 'false').lower() == 'true'
+    
+    if use_ollama:
+        print(f"✓ Using Local Ollama: {ollama_model}")
+        try:
+            from crewai import LLM
+            return LLM(
+                model=f"ollama/{ollama_model}",
+                base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+            )
+        except ImportError:
+            # Fallback to custom wrapper if CrewAI is missing
+            print("   (CrewAI not found, using direct Ollama connection)")
+            return OllamaWrapper(
+                model=ollama_model,
+                base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+            )
+        except Exception as e:
+            print(f"⚠️  Ollama LLM initialization failed: {e}")
+            # Continue to other providers if Ollama fails? Or return None?
+            # If user explicitly wanted Ollama, maybe return the wrapper anyway or fail.
+            # Let's try returning the wrapper as a backup if LLM init failed but it wasn't an import error
+            pass
+
     try:
         from crewai import LLM
     except ImportError:

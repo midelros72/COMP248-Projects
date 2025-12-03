@@ -7,7 +7,7 @@ A multi-agent system for health research and summarization using RAG (Retrieval-
 This system implements a multi-agent architecture with:
 - **Controller Layer**: Mediates between UI and agents
 - **4 Specialized Agents**: Planner, Search, Summarization, Reflective
-- **RAG Integration**: ChromaDB vector store for document retrieval
+- **RAG Integration**: FAISS vector store for document retrieval
 - **User Feedback Loop**: Collects ratings and comments for quality improvement
 - **Session Management**: Tracks queries and feedback per session
 
@@ -24,7 +24,7 @@ Orchestrator Agent (Task Coordination)
     ↓       ↓          ↓            ↓
 Planner  Search  Summarizer  Reflective
           ↓
-      ChromaDB (RAG)
+      FAISS (RAG)
 ```
 
 ## 📋 Features
@@ -68,7 +68,18 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-4. **⚠️ IMPORTANT: Configure OpenAI API Key**
+4. **⚠️ IMPORTANT: Configure LLM (Ollama or OpenAI)**
+
+**Option A: Use Local Ollama (Recommended)**
+1. Install [Ollama](https://ollama.com/)
+2. Pull the model: `ollama pull llama3.2`
+3. Create `.env` file:
+```properties
+USE_OLLAMA=true
+OLLAMA_MODEL=llama3.2
+```
+
+**Option B: Use OpenAI**
 ```powershell
 # Copy the example environment file
 Copy-Item .env.example .env
@@ -78,7 +89,7 @@ Copy-Item .env.example .env
 # Replace: OPENAI_API_KEY=sk-your-actual-api-key-here
 ```
 
-5. **Initialize ChromaDB** (if needed)
+5. **Initialize FAISS** (if needed)
 ```powershell
 python kb\load_data.py
 ```
@@ -110,6 +121,9 @@ Open your browser to `http://localhost:8501`
 - "What are the symptoms of diabetes?"
 - "How is heart disease prevented?"
 - "What causes high blood pressure?"
+- "How does sleep affect mental health?"
+- "What is antibiotic resistance?"
+- "Why is a balanced diet important?"
 
 ## 🧪 Testing
 
@@ -145,10 +159,10 @@ COMP248-Projects/
 │   ├── summarize_agent.py    # Summary generation
 │   └── reflective_agent.py   # Quality evaluation
 ├── tools/
-│   └── rag_tool.py           # ChromaDB integration
+│   └── rag_tool.py           # FAISS integration
 ├── kb/
 │   ├── load_data.py          # Data loading
-│   └── chroma_store/         # Vector database
+│   └── faiss_store/          # Vector database
 ├── diagrams/                  # UML diagrams
 │   ├── component_diagram.puml
 │   ├── sequence_diagram.puml
@@ -180,7 +194,7 @@ COMP248-Projects/
 - **Role**: Document retrieval from RAG store
 - **Input**: Query text
 - **Output**: Relevant document chunks
-- **Tool**: ChromaDB vector search
+- **Tool**: FAISS vector search
 
 #### 3. Summarization Agent
 - **Role**: Generate accessible summaries
@@ -228,7 +242,7 @@ COMP248-Projects/
 ### Privacy
 - No personal health data stored
 - Only public medical sources used
-- Local-only ChromaDB storage
+- Local-only FAISS storage
 
 ### Disclaimers
 - All summaries include medical disclaimers
@@ -274,14 +288,12 @@ class MyAgent(BaseAgent):
 
 ## 🚧 Known Limitations
 
-- ChromaDB must be populated with health documents
-- LLM integration planned but not yet implemented
 - Re-summarization flow exists but not fully wired
 - No persistent feedback storage yet
 
 ## 📝 Future Enhancements
 
-- [ ] LLM integration for smarter summaries
+- [x] LLM integration for smarter summaries (Ollama/OpenAI)
 - [ ] Complete re-summarization workflow
 - [ ] Feedback analytics dashboard
 - [ ] Web search capability
@@ -302,6 +314,6 @@ Educational project for Centennial College
 ## 🙏 Acknowledgments
 
 - CDC, WHO, Health Canada for public health data
-- ChromaDB for vector database
+- FAISS for vector database
 - Streamlit for UI framework
 - CrewAI for multi-agent orchestration

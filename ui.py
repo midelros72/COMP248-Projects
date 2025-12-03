@@ -76,28 +76,6 @@ st.markdown("""
         border-radius: 5px;
     }
     
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background-color: #2c3e50;
-        color: white;
-    }
-    [data-testid="stSidebar"] .stMarkdown, 
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2, 
-    [data-testid="stSidebar"] h3, 
-    [data-testid="stSidebar"] p, 
-    [data-testid="stSidebar"] span, 
-    [data-testid="stSidebar"] div,
-    [data-testid="stSidebar"] label {
-        color: #ecf0f1 !important;
-    }
-    
-    /* Fix for st.info in sidebar */
-    [data-testid="stSidebar"] .stAlert {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: #ecf0f1;
-    }
-    
     /* Button Styling */
     .stButton>button {
         border-radius: 5px;
@@ -222,28 +200,46 @@ if st.session_state.last_response:
         # Custom Success Message
         st.markdown('<div class="success-message">✅ Research Complete!</div>', unsafe_allow_html=True)
         
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="result-header">📋 Research Report</div>', unsafe_allow_html=True)
+        # Create Tabs for better organization
+        tab1, tab2, tab3 = st.tabs(["📄 Research Report", "📚 Source Data", "⚙️ Process Logs"])
         
-        # Display the main result
-        # Assuming the last log or a specific part of the response contains the final summary
-        # Ideally, the controller should return the structured summary separately.
-        # For now, we display the logs which contain the output.
-        
-        if response.agent_logs:
-            # Try to find the final summary in the logs if possible, or display all nicely
-            # For this demo, we'll display the last log entry as it usually contains the final result in the fallback mode
-            # In a real app, we'd parse this better.
+        with tab1:
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+            st.markdown('<div class="result-header">📋 Executive Summary</div>', unsafe_allow_html=True)
             
-            # Displaying all logs in a clean format
-            for log in response.agent_logs:
-                # Clean up log formatting if needed
-                st.markdown(log)
-        else:
-            st.info("No detailed content available.")
+            # Display the main result
+            if response.agent_logs:
+                # Combine logs for the report
+                full_report = "\n\n".join(response.agent_logs)
+                st.markdown(full_report)
+                
+                # Download Button
+                st.download_button(
+                    label="📥 Download Report",
+                    data=full_report,
+                    file_name=f"health_research_report_{st.session_state.session_id[:8]}.txt",
+                    mime="text/plain"
+                )
+            else:
+                st.info("No detailed content available.")
+            st.markdown('</div>', unsafe_allow_html=True)
             
-        st.markdown(f"*Processing Time: {response.execution_time:.2f}s*", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with tab2:
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+            st.markdown("### 🔍 Retrieved Documents")
+            # In a real app, we would parse the source docs from the response object
+            # For now, we'll show a placeholder or extract if possible
+            st.info("Source documents are integrated into the research report.")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with tab3:
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+            st.markdown("### 🛠️ System Logs")
+            st.code(f"Session ID: {st.session_state.session_id}\nExecution Time: {response.execution_time:.2f}s")
+            if response.agent_logs:
+                for log in response.agent_logs:
+                    st.text(log)
+            st.markdown('</div>', unsafe_allow_html=True)
 
         # Feedback Section
         st.markdown('<div class="card feedback-container">', unsafe_allow_html=True)
