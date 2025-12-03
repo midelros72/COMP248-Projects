@@ -17,8 +17,19 @@ st.markdown("""
     .stApp {
         background-color: #f8f9fa;
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: #333333;
     }
     
+    /* Ensure text visibility in cards - Aggressive Overrides */
+    .card, .card * {
+        color: #333333 !important;
+    }
+    
+    /* Specific overrides for Streamlit elements inside cards */
+    .card .stMarkdown, .card .stMarkdown p, .card .stMarkdown li {
+        color: #333333 !important;
+    }
+
     /* Header Styling */
     .main-header {
         font-size: 2.5rem;
@@ -50,6 +61,11 @@ st.markdown("""
         margin-bottom: 1rem;
         border-bottom: 2px solid #3498db;
         padding-bottom: 0.5rem;
+    }
+    
+    /* Markdown Text Styling inside Cards */
+    .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+        color: #2c3e50 !important;
     }
     
     /* Feedback Section Styling */
