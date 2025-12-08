@@ -1,0 +1,62 @@
+@startuml System_Overview
+
+!define RECTANGLE class
+
+skinparam backgroundColor transparent
+skinparam defaultFontSize 14
+skinparam rectangleBackgroundColor #2E4057
+skinparam rectangleBorderColor #4ECDC4
+skinparam rectangleFontColor white
+skinparam arrowColor #4ECDC4
+skinparam arrowFontColor #4ECDC4
+
+title Health RAG System Architecture
+
+rectangle "Streamlit UI" as UI #4ECDC4
+rectangle "System Controller" as CTRL #00BFA5
+rectangle "Multi-Agent Orchestrator" as ORCH #FF6B6B
+
+package "Specialized Agents" {
+    rectangle "Planner\nAgent" as PLAN #FFE66D
+    rectangle "Search\nAgent" as SEARCH #FFE66D  
+    rectangle "Summarize\nAgent" as SUMM #FFE66D
+    rectangle "Reflective\nAgent" as REFLECT #FFE66D
+}
+
+rectangle "Vector Database\n(FAISS + ChromaDB)" as DB #2E4057
+rectangle "Knowledge Base\n(Medical Documents)" as KB #2E4057
+rectangle "Local LLM\n(Ollama + Mistral)" as LLM #2E4057
+
+' Main flow
+UI --> CTRL : User Query
+CTRL --> ORCH : Process Request
+ORCH --> PLAN : Create Plan
+ORCH --> SEARCH : Retrieve Info
+SEARCH --> DB : Vector Search
+SEARCH --> KB : Medical Content
+ORCH --> SUMM : Generate Summary  
+ORCH --> REFLECT : Validate Quality
+SUMM --> LLM : Generate Response
+REFLECT --> LLM : Evaluate Response
+ORCH --> CTRL : Complete Response
+CTRL --> UI : Display Results
+
+' Feedback loop
+UI --> CTRL : User Feedback
+CTRL --> ORCH : Process Feedback
+ORCH --> REFLECT : Incorporate Feedback
+REFLECT --> SUMM : Revision Request
+
+note right of LLM
+  Privacy-focused
+  Local processing
+  No API costs
+end note
+
+note left of DB
+  Semantic search
+  Medical embeddings
+  Fast retrieval
+end note
+
+@enduml
