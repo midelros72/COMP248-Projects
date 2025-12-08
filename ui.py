@@ -20,6 +20,57 @@ st.markdown("""
         color: #333333;
     }
     
+    /* Sidebar Styling - Vivid Color */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #6a11cb 0%, #2575fc 100%);
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: white !important;
+    }
+    
+    [data-testid="stSidebar"] .stMetric {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+    }
+    
+    /* Search Input - Vivid Color */
+    .stTextInput > div > div > input {
+        background-color: #e3f2fd !important;
+        border: 2px solid #2196f3 !important;
+        color: #333333 !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #1976d2 !important;
+        box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25) !important;
+    }
+    
+    /* Text Area (Reviewer Notes) - Light Color */
+    .stTextArea > div > div > textarea {
+        background-color: #f5f5f5 !important;
+        border: 2px solid #bdbdbd !important;
+        color: #333333 !important;
+    }
+    
+    .stTextArea > div > div > textarea:focus {
+        border-color: #9e9e9e !important;
+        box-shadow: 0 0 0 0.2rem rgba(158, 158, 158, 0.25) !important;
+    }
+    
+    /* Button - Fade Green Color */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%) !important;
+        color: white !important;
+        border: none !important;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%) !important;
+        box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3) !important;
+    }
+    
     /* Ensure text visibility in cards - Aggressive Overrides */
     .card, .card * {
         color: #333333 !important;
