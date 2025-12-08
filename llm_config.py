@@ -42,23 +42,26 @@ def get_llm_config():
         print(f"✓ Using Local Ollama: {ollama_model}")
         try:
             from crewai import LLM
-            return LLM(
+            llm = LLM(
                 model=f"ollama/{ollama_model}",
                 base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
             )
+            print(f"   ✓ Using CrewAI LLM wrapper for agent orchestration")
+            return llm
         except ImportError:
             # Fallback to custom wrapper if CrewAI is missing
-            print("   (CrewAI not found, using direct Ollama connection)")
+            print("   ⚠️  CrewAI not found, using direct Ollama connection")
             return OllamaWrapper(
                 model=ollama_model,
                 base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
             )
         except Exception as e:
-            print(f"⚠️  Ollama LLM initialization failed: {e}")
-            # Continue to other providers if Ollama fails? Or return None?
-            # If user explicitly wanted Ollama, maybe return the wrapper anyway or fail.
-            # Let's try returning the wrapper as a backup if LLM init failed but it wasn't an import error
-            pass
+            print(f"   ⚠️  CrewAI LLM initialization failed: {e}")
+            print("   Falling back to direct Ollama connection")
+            return OllamaWrapper(
+                model=ollama_model,
+                base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+            )
 
     try:
         from crewai import LLM

@@ -77,6 +77,19 @@ def main():
             "text": "Antibiotic resistance happens when germs like bacteria and fungi develop the ability to defeat "
                     "the drugs designed to kill them. That means the germs are not killed and continue to grow. "
                     "Overuse and misuse of antibiotics are key drivers of this global health threat.",
+        },
+        {
+            "id": "doc11",
+            "text": "Vitamin B12 (cobalamin) is an essential nutrient that plays a crucial role in maintaining healthy nerve cells, "
+                    "producing DNA and red blood cells, and supporting brain function. Benefits include improved energy levels, "
+                    "better memory and mood, stronger bones, and reduced risk of anemia. It is primarily found in animal products "
+                    "like meat, fish, eggs, and dairy. Deficiency can cause fatigue, weakness, nerve damage, and cognitive problems.",
+        },
+        {
+            "id": "doc12",
+            "text": "Vitamin B12 deficiency is common in older adults, vegetarians, vegans, and people with digestive disorders. "
+                    "Symptoms include extreme fatigue, tingling in hands and feet, difficulty walking, memory problems, and mood changes. "
+                    "Treatment involves B12 supplements or injections. The recommended daily intake is 2.4 mcg for adults.",
         }
     ]
 
